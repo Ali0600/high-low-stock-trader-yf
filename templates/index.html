@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stock Tracker</title>
+  </head>
+  <body>
+    <h1>Stock Tracker</h1>
+    <form method="post">
+      <label for="symbol">Stock Symbol:</label>
+      <input type="text" id="symbol" name="symbol" required />
+      <br />
+      <input type="submit" value="Track" />
+    </form>
+    {% if stock_data %}
+    <h2>Stock Data for 5 Days:</h2>
+    <table border="1">
+      <tr>
+        <th>Date</th>
+        <th>Open</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>High % Change</th>
+        <th>Low % Change</th>
+      </tr>
+      {% for i in range(5) %}
+      <tr>
+        <td>{{ stock_data['5d']['Date'][i] }}</td>
+        <td>{{ stock_data['5d']['Open'][i] }}</td>
+        <td>{{ stock_data['5d']['High'][i] }}</td>
+        <td>{{ stock_data['5d']['Low'][i] }}</td>
+        <td>{{ stock_data['5d']['High % Change'][i] }}</td>
+        <td>{{ stock_data['5d']['Low % Change'][i] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Stock Data for 10 Days:</h2>
+    <table border="1">
+      <tr>
+        <th>Date</th>
+        <th>Open</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>High % Change</th>
+        <th>Low % Change</th>
+      </tr>
+      {% for i in range(10) %}
+      <tr>
+        <td>{{ stock_data['10d']['Date'][i] }}</td>
+        <td>{{ stock_data['10d']['Open'][i] }}</td>
+        <td>{{ stock_data['10d']['High'][i] }}</td>
+        <td>{{ stock_data['10d']['Low'][i] }}</td>
+        <td>{{ stock_data['10d']['High % Change'][i] }}</td>
+        <td>{{ stock_data['10d']['Low % Change'][i] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Stock Data for 30 Days:</h2>
+    <table border="1">
+      <tr>
+        <th>Date</th>
+        <th>Open</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>High % Change</th>
+        <th>Low % Change</th>
+      </tr>
+      {% for i in range(30) %}
+      <tr>
+        <td>{{ stock_data['30d']['Date'][i] }}</td>
+        <td>{{ stock_data['30d']['Open'][i] }}</td>
+        <td>{{ stock_data['30d']['High'][i] }}</td>
+        <td>{{ stock_data['30d']['Low'][i] }}</td>
+        <td>{{ stock_data['30d']['High % Change'][i] }}</td>
+        <td>{{ stock_data['30d']['Low % Change'][i] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Stock Data for 60 Days:</h2>
+    <table border="1">
+      <tr>
+        <th>Date</th>
+        <th>Open</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>High % Change</th>
+        <th>Low % Change</th>
+      </tr>
+      {% for i in range(60) %}
+      <tr>
+        <td>{{ stock_data['60d']['Date'][i] }}</td>
+        <td>{{ stock_data['60d']['Open'][i] }}</td>
+        <td>{{ stock_data['60d']['High'][i] }}</td>
+        <td>{{ stock_data['60d']['Low'][i] }}</td>
+        <td>{{ stock_data['60d']['High % Change'][i] }}</td>
+        <td>{{ stock_data['60d']['Low % Change'][i] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Stock Data for 90 Days:</h2>
+    <table border="1">
+      <tr>
+        <th>Date</th>
+        <th>Open</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>High % Change</th>
+        <th>Low % Change</th>
+      </tr>
+      {% for i in range(90) %}
+      <tr>
+        <td>{{ stock_data['90d']['Date'][i] }}</td>
+        <td>{{ stock_data['90d']['Open'][i] }}</td>
+        <td>{{ stock_data['90d']['High'][i] }}</td>
+        <td>{{ stock_data['90d']['Low'][i] }}</td>
+        <td>{{ stock_data['90d']['High % Change'][i] }}</td>
+        <td>{{ stock_data['90d']['Low % Change'][i] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h2>Average and Extremes:</h2>
+    <table border="1">
+      <tr>
+        <th>Period</th>
+        <th>Avg High % Change</th>
+        <th>Avg Low % Change</th>
+        <th>Max High % Change</th>
+        <th>Min High % Change</th>
+        <th>Max Low % Change</th>
+        <th>Min Low % Change</th>
+      </tr>
+      {% for period in ['5d', '10d', '30d', '60d', '90d'] %}
+      <tr>
+        <td>{{ period }}</td>
+        <td>{{ stock_data[period]['Avg High % Change'] }}</td>
+        <td>{{ stock_data[period]['Avg Low % Change'] }}</td>
+        <td>{{ stock_data[period]['Max High % Change'] }}</td>
+        <td>{{ stock_data[period]['Min High % Change'] }}</td>
+        <td>{{ stock_data[period]['Max Low % Change'] }}</td>
+        <td>{{ stock_data[period]['Min Low % Change'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+  </body>
+</html>
