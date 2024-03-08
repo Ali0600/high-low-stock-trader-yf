@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 import yfinance as yf
-from datetime import datetime, timedelta
 import pandas as pd
 from pandas.tseries.offsets import BDay
 
@@ -18,12 +17,12 @@ def track_stock(symbol):
 
     # Initialize dictionaries to store data for each time period
     stock_data = {
-        '1y': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'High % Change': [], 'Low % Change': []},
-        '90d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'High % Change': [], 'Low % Change': []},
-        '60d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'High % Change': [], 'Low % Change': []},
-        '30d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'High % Change': [], 'Low % Change': []},
-        '10d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'High % Change': [], 'Low % Change': []},
-        '5d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'High % Change': [], 'Low % Change': []}
+        '1y': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': []},
+        '90d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': []},
+        '60d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': []},
+        '30d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': []},
+        '10d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': []},
+        '5d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': []}
     }
 
     # Get the last 5 business days
@@ -43,6 +42,7 @@ def track_stock(symbol):
             stock_data['5d']['Open'].append(row['Open'])
             stock_data['5d']['High'].append(row['High'])
             stock_data['5d']['Low'].append(row['Low'])
+            stock_data['5d']['Close'].append(row['Close'])
             stock_data['5d']['High % Change'].append(pct_change_high)
             stock_data['5d']['Low % Change'].append(pct_change_low)
 
@@ -63,6 +63,7 @@ def track_stock(symbol):
             stock_data['10d']['Open'].append(row['Open'])
             stock_data['10d']['High'].append(row['High'])
             stock_data['10d']['Low'].append(row['Low'])
+            stock_data['10d']['Close'].append(row['Close'])
             stock_data['10d']['High % Change'].append(pct_change_high)
             stock_data['10d']['Low % Change'].append(pct_change_low)
 
@@ -83,6 +84,7 @@ def track_stock(symbol):
             stock_data['30d']['Open'].append(row['Open'])
             stock_data['30d']['High'].append(row['High'])
             stock_data['30d']['Low'].append(row['Low'])
+            stock_data['30d']['Close'].append(row['Close'])
             stock_data['30d']['High % Change'].append(pct_change_high)
             stock_data['30d']['Low % Change'].append(pct_change_low)
 
@@ -103,6 +105,7 @@ def track_stock(symbol):
             stock_data['60d']['Open'].append(row['Open'])
             stock_data['60d']['High'].append(row['High'])
             stock_data['60d']['Low'].append(row['Low'])
+            stock_data['60d']['Close'].append(row['Close'])
             stock_data['60d']['High % Change'].append(pct_change_high)
             stock_data['60d']['Low % Change'].append(pct_change_low)
 
@@ -123,6 +126,7 @@ def track_stock(symbol):
             stock_data['90d']['Open'].append(row['Open'])
             stock_data['90d']['High'].append(row['High'])
             stock_data['90d']['Low'].append(row['Low'])
+            stock_data['90d']['Close'].append(row['Close'])
             stock_data['90d']['High % Change'].append(pct_change_high)
             stock_data['90d']['Low % Change'].append(pct_change_low)
 

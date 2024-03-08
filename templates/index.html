@@ -19,19 +19,21 @@
         <th>Open</th>
         <th>High</th>
         <th>Low</th>
+        <th>Close</th>
         <th>High % Change</th>
         <th>Low % Change</th>
       </tr>
-      {% for i in range(5) %}
+      {% for i in range(5) %} {% if i < stock_data['5d']['Date']|length %}
       <tr>
         <td>{{ stock_data['5d']['Date'][i] }}</td>
         <td>{{ stock_data['5d']['Open'][i] }}</td>
         <td>{{ stock_data['5d']['High'][i] }}</td>
         <td>{{ stock_data['5d']['Low'][i] }}</td>
+        <td>{{ stock_data['5d']['Close'][i] }}</td>
         <td>{{ stock_data['5d']['High % Change'][i] }}</td>
         <td>{{ stock_data['5d']['Low % Change'][i] }}</td>
       </tr>
-      {% endfor %}
+      {% endif %}{% endfor %}
     </table>
 
     <h2>Stock Data for 10 Days:</h2>
@@ -41,19 +43,21 @@
         <th>Open</th>
         <th>High</th>
         <th>Low</th>
+        <th>Close</th>
         <th>High % Change</th>
         <th>Low % Change</th>
       </tr>
-      {% for i in range(10) %}
+      {% for i in range(10) %} {% if i < stock_data['10d']['Date']|length %}
       <tr>
         <td>{{ stock_data['10d']['Date'][i] }}</td>
         <td>{{ stock_data['10d']['Open'][i] }}</td>
         <td>{{ stock_data['10d']['High'][i] }}</td>
         <td>{{ stock_data['10d']['Low'][i] }}</td>
+        <td>{{ stock_data['10d']['Close'][i] }}</td>
         <td>{{ stock_data['10d']['High % Change'][i] }}</td>
         <td>{{ stock_data['10d']['Low % Change'][i] }}</td>
       </tr>
-      {% endfor %}
+      {% endif %}{% endfor %}
     </table>
 
     <h2>Stock Data for 30 Days:</h2>
@@ -63,19 +67,21 @@
         <th>Open</th>
         <th>High</th>
         <th>Low</th>
+        <th>Close</th>
         <th>High % Change</th>
         <th>Low % Change</th>
       </tr>
-      {% for i in range(30) %}
+      {% for i in range(30) %} {% if i < stock_data['30d']['Date']|length %}
       <tr>
         <td>{{ stock_data['30d']['Date'][i] }}</td>
         <td>{{ stock_data['30d']['Open'][i] }}</td>
         <td>{{ stock_data['30d']['High'][i] }}</td>
         <td>{{ stock_data['30d']['Low'][i] }}</td>
+        <td>{{ stock_data['30d']['Close'][i] }}</td>
         <td>{{ stock_data['30d']['High % Change'][i] }}</td>
         <td>{{ stock_data['30d']['Low % Change'][i] }}</td>
       </tr>
-      {% endfor %}
+      {% endif %}{% endfor %}
     </table>
 
     <h2>Stock Data for 60 Days:</h2>
@@ -85,19 +91,21 @@
         <th>Open</th>
         <th>High</th>
         <th>Low</th>
+        <th>Close</th>
         <th>High % Change</th>
         <th>Low % Change</th>
       </tr>
-      {% for i in range(60) %}
+      {% for i in range(60) %} {% if i < stock_data['60d']['Date']|length %}
       <tr>
         <td>{{ stock_data['60d']['Date'][i] }}</td>
         <td>{{ stock_data['60d']['Open'][i] }}</td>
         <td>{{ stock_data['60d']['High'][i] }}</td>
         <td>{{ stock_data['60d']['Low'][i] }}</td>
+        <td>{{ stock_data['60d']['Close'][i] }}</td>
         <td>{{ stock_data['60d']['High % Change'][i] }}</td>
         <td>{{ stock_data['60d']['Low % Change'][i] }}</td>
       </tr>
-      {% endfor %}
+      {% endif %}{% endfor %}
     </table>
 
     <h2>Stock Data for 90 Days:</h2>
@@ -107,19 +115,21 @@
         <th>Open</th>
         <th>High</th>
         <th>Low</th>
+        <th>Close</th>
         <th>High % Change</th>
         <th>Low % Change</th>
       </tr>
-      {% for i in range(90) %}
+      {% for i in range(90) %} {% if i < stock_data['90d']['Date']|length %}
       <tr>
         <td>{{ stock_data['90d']['Date'][i] }}</td>
         <td>{{ stock_data['90d']['Open'][i] }}</td>
         <td>{{ stock_data['90d']['High'][i] }}</td>
         <td>{{ stock_data['90d']['Low'][i] }}</td>
+        <td>{{ stock_data['90d']['Close'][i] }}</td>
         <td>{{ stock_data['90d']['High % Change'][i] }}</td>
         <td>{{ stock_data['90d']['Low % Change'][i] }}</td>
       </tr>
-      {% endfor %}
+      {% endif %}{% endfor %}
     </table>
 
     <h2>Average and Extremes:</h2>
