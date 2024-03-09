@@ -15,143 +15,64 @@ def track_stock(symbol):
     # Get the last date in the data
     last_date = stock_data_1y.index[-1]
 
-    # Initialize dictionaries to store data for each time period
-    stock_data = {
-        '1y': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [], 'Low to Close %': [], 'High to Close %': []},
-        '90d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [], 'Low to Close %': [], 'High to Close %': []},
-        '60d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [], 'Low to Close %': [], 'High to Close %': []},
-        '30d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [], 'Low to Close %': [], 'High to Close %': []},
-        '10d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [], 'Low to Close %': [], 'High to Close %': []},
-        '5d': {'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [], 'Low to Close %': [], 'High to Close %': []}
+    # Define the time periods and their corresponding number of days
+    time_periods = {
+        '5d': 5,
+        '10d': 10,
+        '30d': 30,
+        '60d': 60,
+        '90d': 90,
+        '1y': 365
     }
 
-    # Get the last 5 business days
-    business_days = pd.date_range(end=last_date, periods=5, freq=BDay())
+     # Initialize dictionary to store stock data
+    stock_data = {}
+    for period, days in time_periods.items():
+        # Get the last n business days
+        if period == '5d':
+            business_days = pd.date_range(end=last_date, periods=days, freq=BDay())
+        elif period == '10d':
+            business_days = pd.date_range(end=last_date, periods=days, freq=BDay())
+        elif period == '30d':
+            business_days = pd.date_range(end=last_date, periods=days+1, freq=BDay())
+        elif period == '60d':
+            business_days = pd.date_range(end=last_date, periods=days, freq=BDay())
+        elif period == '90d':
+            business_days = pd.date_range(end=last_date, periods=days, freq=BDay())
 
-    # Iterate over each business day's data for the last 5 days
-    for date in business_days:
-        if date in stock_data_1y.index:
-            row = stock_data_1y.loc[date]
 
-            # Calculate percentage changes for each day
-            pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-            pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-            pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
-            pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
+        #business_days = pd.date_range(end=last_date, periods=days+1, freq=BDay())
 
-            # Add data to the 7 day dictionary
-            stock_data['5d']['Date'].append(date.strftime('%Y-%m-%d'))
-            stock_data['5d']['Open'].append(row['Open'])
-            stock_data['5d']['High'].append(row['High'])
-            stock_data['5d']['Low'].append(row['Low'])
-            stock_data['5d']['Close'].append(row['Close'])
-            stock_data['5d']['High % Change'].append(pct_change_high)
-            stock_data['5d']['Low % Change'].append(pct_change_low)
-            stock_data['5d']['Low to Close %'].append(pct_change_low_to_close)
-            stock_data['5d']['High to Close %'].append(pct_change_high_to_close)
+        # Initialize lists to store data for each period
+        stock_data[period] = {
+            'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [],
+            'Low to Close %': [], 'High to Close %': []
+        }
 
-    # Get the last 10 business days
-    business_days = pd.date_range(end=last_date, periods=11, freq=BDay())
+        # Iterate over each business day's data for the specified period
+        for date in business_days:
+            if date in stock_data_1y.index:
+                row = stock_data_1y.loc[date]
 
-    # Iterate over each business day's data for the last 10 days
-    for date in business_days:
-        if date in stock_data_1y.index:
-            row = stock_data_1y.loc[date]
+                # Calculate percentage changes for each day
+                pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
+                pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
+                pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
+                pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
 
-            # Calculate percentage changes for each day
-            pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-            pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-            pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
-            pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
+                # Add data to the period dictionary
+                stock_data[period]['Date'].append(date.strftime('%Y-%m-%d'))
+                stock_data[period]['Open'].append(row['Open'])
+                stock_data[period]['High'].append(row['High'])
+                stock_data[period]['Low'].append(row['Low'])
+                stock_data[period]['Close'].append(row['Close'])
+                stock_data[period]['High % Change'].append(pct_change_high)
+                stock_data[period]['Low % Change'].append(pct_change_low)
+                stock_data[period]['Low to Close %'].append(pct_change_low_to_close)
+                stock_data[period]['High to Close %'].append(pct_change_high_to_close)
 
-            # Add data to the 14 day dictionary
-            stock_data['10d']['Date'].append(date.strftime('%Y-%m-%d'))
-            stock_data['10d']['Open'].append(row['Open'])
-            stock_data['10d']['High'].append(row['High'])
-            stock_data['10d']['Low'].append(row['Low'])
-            stock_data['10d']['Close'].append(row['Close'])
-            stock_data['10d']['High % Change'].append(pct_change_high)
-            stock_data['10d']['Low % Change'].append(pct_change_low)
-            stock_data['10d']['Low to Close %'].append(pct_change_low_to_close)
-            stock_data['10d']['High to Close %'].append(pct_change_high_to_close)
 
-    # Get the last 30 business days
-    business_days = pd.date_range(end=last_date, periods=31, freq=BDay())
-
-    # Iterate over each business day's data for the last 30 days
-    for date in business_days:
-        if date in stock_data_1y.index:
-            row = stock_data_1y.loc[date]
-
-            # Calculate percentage changes for each day
-            pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-            pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-            pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
-            pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
-
-            # Add data to the 30 day dictionary
-            stock_data['30d']['Date'].append(date.strftime('%Y-%m-%d'))
-            stock_data['30d']['Open'].append(row['Open'])
-            stock_data['30d']['High'].append(row['High'])
-            stock_data['30d']['Low'].append(row['Low'])
-            stock_data['30d']['Close'].append(row['Close'])
-            stock_data['30d']['High % Change'].append(pct_change_high)
-            stock_data['30d']['Low % Change'].append(pct_change_low)
-            stock_data['30d']['Low to Close %'].append(pct_change_low_to_close)
-            stock_data['30d']['High to Close %'].append(pct_change_high_to_close)
-
-    # Get the last 60 business days
-    business_days = pd.date_range(end=last_date, periods=64, freq=BDay())
-
-    # Iterate over each business day's data for the last 60 days
-    for date in business_days:
-        if date in stock_data_1y.index:
-            row = stock_data_1y.loc[date]
-
-            # Calculate percentage changes for each day
-            pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-            pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-            pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
-            pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
-
-            # Add data to the 60 day dictionary
-            stock_data['60d']['Date'].append(date.strftime('%Y-%m-%d'))
-            stock_data['60d']['Open'].append(row['Open'])
-            stock_data['60d']['High'].append(row['High'])
-            stock_data['60d']['Low'].append(row['Low'])
-            stock_data['60d']['Close'].append(row['Close'])
-            stock_data['60d']['High % Change'].append(pct_change_high)
-            stock_data['60d']['Low % Change'].append(pct_change_low)
-            stock_data['60d']['Low to Close %'].append(pct_change_low_to_close)
-            stock_data['60d']['High to Close %'].append(pct_change_high_to_close)
-
-    # Get the last 90 business days
-    business_days = pd.date_range(end=last_date, periods=95, freq=BDay())
-
-    # Iterate over each business day's data for the last 90 days
-    for date in business_days:
-        if date in stock_data_1y.index:
-            row = stock_data_1y.loc[date]
-
-            # Calculate percentage changes for each day
-            pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-            pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-            pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
-            pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
-
-            # Add data to the 90 day dictionary
-            stock_data['90d']['Date'].append(date.strftime('%Y-%m-%d'))
-            stock_data['90d']['Open'].append(row['Open'])
-            stock_data['90d']['High'].append(row['High'])
-            stock_data['90d']['Low'].append(row['Low'])
-            stock_data['90d']['Close'].append(row['Close'])
-            stock_data['90d']['High % Change'].append(pct_change_high)
-            stock_data['90d']['Low % Change'].append(pct_change_low)
-            stock_data['90d']['Low to Close %'].append(pct_change_low_to_close)
-            stock_data['90d']['High to Close %'].append(pct_change_high_to_close)
-
-    # Calculate average high % change and low % change for each period
-    for period in ['5d', '10d', '30d', '60d', '90d']:
+        # Calculate average high % change and low % change for each period
         if stock_data[period]['High % Change']:
             stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High % Change']) / len(stock_data[period]['High % Change'])
             stock_data[period]['Avg Low % Change'] = sum(stock_data[period]['Low % Change']) / len(stock_data[period]['Low % Change'])
@@ -159,6 +80,7 @@ def track_stock(symbol):
             stock_data[period]['Min High % Change'] = min(stock_data[period]['High % Change'])
             stock_data[period]['Max Low % Change'] = max(stock_data[period]['Low % Change'])
             stock_data[period]['Min Low % Change'] = min(stock_data[period]['Low % Change'])
+    
 
     return stock_data
 

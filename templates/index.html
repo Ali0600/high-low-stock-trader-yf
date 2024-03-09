@@ -51,6 +51,7 @@
         <th>Low to Close %</th>
         <th>High to Close %</th>
       </tr>
+      <p>Number of rows: {{ stock_data['5d']['Date']|length }}</p>
       {% for i in range(5) %} {% if i < stock_data['5d']['Date']|length %}
       <tr>
         <td>{{ stock_data['5d']['Date'][i] }}</td>
@@ -79,6 +80,7 @@
         <th>Low to Close %</th>
         <th>High to Close %</th>
       </tr>
+      <p>Number of rows: {{ stock_data['10d']['Date']|length }}</p>
       {% for i in range(10) %} {% if i < stock_data['10d']['Date']|length %}
       <tr>
         <td>{{ stock_data['10d']['Date'][i] }}</td>
@@ -107,6 +109,7 @@
         <th>Low to Close %</th>
         <th>High to Close %</th>
       </tr>
+      <p>Number of rows: {{ stock_data['30d']['Date']|length }}</p>
       {% for i in range(30) %} {% if i < stock_data['30d']['Date']|length %}
       <tr>
         <td>{{ stock_data['30d']['Date'][i] }}</td>
@@ -135,6 +138,7 @@
         <th>Low to Close %</th>
         <th>High to Close %</th>
       </tr>
+      <p>Number of rows: {{ stock_data['60d']['Date']|length }}</p>
       {% for i in range(60) %} {% if i < stock_data['60d']['Date']|length %}
       <tr>
         <td>{{ stock_data['60d']['Date'][i] }}</td>
@@ -163,6 +167,7 @@
         <th>Low to Close %</th>
         <th>High to Close %</th>
       </tr>
+      <p>Number of rows: {{ stock_data['90d']['Date']|length }}</p>
       {% for i in range(90) %} {% if i < stock_data['90d']['Date']|length %}
       <tr>
         <td>{{ stock_data['90d']['Date'][i] }}</td>
