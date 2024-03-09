@@ -36,9 +36,9 @@ def track_stock(symbol):
         elif period == '30d':
             business_days = pd.date_range(end=last_date, periods=days+1, freq=BDay())
         elif period == '60d':
-            business_days = pd.date_range(end=last_date, periods=days, freq=BDay())
+            business_days = pd.date_range(end=last_date, periods=days+4, freq=BDay())
         elif period == '90d':
-            business_days = pd.date_range(end=last_date, periods=days, freq=BDay())
+            business_days = pd.date_range(end=last_date, periods=days+5, freq=BDay())
 
 
         #business_days = pd.date_range(end=last_date, periods=days+1, freq=BDay())
