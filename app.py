@@ -162,7 +162,7 @@ def track_stock(symbol):
 
     return stock_data
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/stock-tracker', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         symbol = request.form['symbol']
@@ -171,6 +171,10 @@ def index():
         return render_template('index.html', stock_data=stock_data)
     else:
         return render_template('index.html', stock_data=None)
+    
+@app.route('/', methods=['GET'])
+def home():
+    return render_template('homepage.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
