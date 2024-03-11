@@ -1,9 +1,22 @@
 from flask import Flask, render_template, request
+from flask_sqlalchemy import SQLAlchemy
 import yfinance as yf
 import pandas as pd
 from pandas.tseries.offsets import BDay
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stocks.db'
+db = SQLAlchemy(app)
+
+class TrackedStock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(10), nullable=False)
+    
+with app.app_context():
+    db.create_all()
+
+tracked_stocks_set = set()
+
 
 def track_stock(symbol):
     # Get the stock data for 1 year
@@ -40,8 +53,6 @@ def track_stock(symbol):
         elif period == '90d':
             business_days = pd.date_range(end=last_date, periods=days+5, freq=BDay())
 
-
-        #business_days = pd.date_range(end=last_date, periods=days+1, freq=BDay())
 
         # Initialize lists to store data for each period
         stock_data[period] = {
@@ -97,6 +108,27 @@ def index():
 @app.route('/', methods=['GET'])
 def home():
     return render_template('homepage.html')
+
+@app.route('/tracked-stocks', methods=['GET', 'POST'])
+def track_stocks():
+    if request.method == 'POST':
+        symbol = request.form['symbol']
+        with app.app_context():
+            new_stock = TrackedStock(symbol=symbol)
+            db.session.add(new_stock)
+            db.session.commit()
+        #tracked_stocks_set.add(symbol)
+        #db.session.add(tracked_stocks_set)
+        # db.session.commit()
+        with app.app_context():
+            tracked_stocks = TrackedStock.query.all()
+            for stock in tracked_stocks:
+                tracked_stocks_set.add(stock.symbol)
+        
+
+        return render_template('trackedstocks.html', tracked_stocks=list(tracked_stocks_set))
+    else:
+        return render_template('trackedstocks.html', stock_data=None)
 
 if __name__ == '__main__':
     app.run(debug=True)

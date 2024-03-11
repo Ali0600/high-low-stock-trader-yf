@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stock Tracker</title>
+  </head>
+  <body>
+    <h1>Stock Tracker</h1>
+
+    <form method="post">
+      <label for="symbol">Stock Symbol:</label>
+      <input type="text" id="symbol" name="symbol" required />
+      <br />
+      <input type="submit" value="Track" />
+    </form>
+
+    <h2>Tracked Stocks:</h2>
+    <ul>
+      {% for stock in tracked_stocks %}
+      <li>{{ stock }}</li>
+      {% else %}
+      <li>No stocks tracked yet.</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
