@@ -114,21 +114,17 @@ def track_stocks():
     if request.method == 'POST':
         symbol = request.form['symbol']
         with app.app_context():
-            new_stock = TrackedStock(symbol=symbol)
-            db.session.add(new_stock)
-            db.session.commit()
-        #tracked_stocks_set.add(symbol)
-        #db.session.add(tracked_stocks_set)
-        # db.session.commit()
-        with app.app_context():
-            tracked_stocks = TrackedStock.query.all()
-            for stock in tracked_stocks:
-                tracked_stocks_set.add(stock.symbol)
+            existing_stock = TrackedStock.query.filter_by(symbol=symbol).first()
+            if not existing_stock:
+                new_stock = TrackedStock(symbol=symbol)
+                db.session.add(new_stock)
+                db.session.commit()
+    with app.app_context():
+        tracked_stocks = TrackedStock.query.all()
+        tracked_symbols = [stock.symbol for stock in tracked_stocks]
         
 
-        return render_template('trackedstocks.html', tracked_stocks=list(tracked_stocks_set))
-    else:
-        return render_template('trackedstocks.html', stock_data=None)
+    return render_template('trackedstocks.html', tracked_stocks=tracked_symbols)
 
 if __name__ == '__main__':
     app.run(debug=True)
