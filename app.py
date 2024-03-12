@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 import yfinance as yf
 import pandas as pd
@@ -7,16 +8,17 @@ from pandas.tseries.offsets import BDay
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stocks.db'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 class TrackedStock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(10), nullable=False)
-    
-with app.app_context():
-    db.create_all()
+    price = db.Column(db.Float, nullable=False)
+    data = db.Column(db.JSON, nullable=True)
 
-tracked_stocks_set = set()
-
+def get_current_price(symbol):
+    stock = yf.Ticker(symbol)
+    return stock.info['currentPrice']
 
 def track_stock(symbol):
     # Get the stock data for 1 year
@@ -113,18 +115,31 @@ def home():
 def track_stocks():
     if request.method == 'POST':
         symbol = request.form['symbol']
+        stock_price = request.form['price']
+
         with app.app_context():
             existing_stock = TrackedStock.query.filter_by(symbol=symbol).first()
-            if not existing_stock:
-                new_stock = TrackedStock(symbol=symbol)
+            if existing_stock:
+                existing_stock.price = stock_price
+            else:
+                new_stock = TrackedStock(symbol=symbol, price=stock_price, data=track_stock(symbol))
                 db.session.add(new_stock)
-                db.session.commit()
-    with app.app_context():
-        tracked_stocks = TrackedStock.query.all()
-        tracked_symbols = [stock.symbol for stock in tracked_stocks]
-        
 
-    return render_template('trackedstocks.html', tracked_stocks=tracked_symbols)
+            db.session.commit()
+        
+        with app.app_context():
+            all_stocks = TrackedStock.query.all()
+        
+        return render_template('trackedstocks.html', tracked_stocks=all_stocks)
+    else:
+        # Handle GET request
+        with app.app_context():
+            all_stocks = TrackedStock.query.all()
+            print(all_stocks)
+            tracked_symbols = [stock.symbol for stock in all_stocks]
+            print(tracked_symbols)
+      
+        return render_template('trackedstocks.html', tracked_stocks=all_stocks)
 
 if __name__ == '__main__':
     app.run(debug=True)
