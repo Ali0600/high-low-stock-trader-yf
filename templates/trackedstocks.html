@@ -20,51 +20,40 @@
     <!-- Display tracked stocks -->
     <h2>Currently Tracked Stocks:</h2>
     <ul>
-      {% for stock in tracked_stocks %}
+      {% if tracked_stocks %} {% for stock in tracked_stocks %}
       <h3>
         <strong>Symbol:</strong> {{ stock.symbol }},
         <strong>Price:</strong> {{stock.price }}
       </h3>
-      {% if tracked_stocks %}
-      <h2>Average and Extremes:</h2>
-      <table border="1">
-        <tr>
-          <th>Period</th>
-          <th>Avg High % Change</th>
-          <th>Avg Low % Change</th>
-          <th>Max High % Change</th>
-          <th>Min High % Change</th>
-          <th>Max Low % Change</th>
-          <th>Min Low % Change</th>
-        </tr>
-        {% for period in ['5d', '10d', '30d', '60d', '90d'] %}
-        <tr>
-          <td>{{ period }}</td>
-          <td>{{ stock.data[period]['Avg High % Change'] }}</td>
-          <td>{{ stock.data[period]['Avg Low % Change'] }}</td>
-          <td>{{ stock.data[period]['Max High % Change'] }}</td>
-          <td>{{ stock.data[period]['Min High % Change'] }}</td>
-          <td>{{ stock.data[period]['Max Low % Change'] }}</td>
-          <td>{{ stock.data[period]['Min Low % Change'] }}</td>
-        </tr>
-        {% endfor %}
-      </table>
-      <button onclick="showStockData()">Show Stock Data</button>
-
-      <script>
-        function showStockData() {
-          var stockData = document.getElementById("stockData");
-          if (stockData.style.display === "none") {
-            stockData.style.display = "block";
-          } else {
-            stockData.style.display = "none";
-          }
-        }
-      </script>
-
-      <div id="stockData" style="display: none">
-        {% if stock.data %} {% for period, data in stock.data.items() %}
-        <h2>Stock Data for {{ period }}</h2>
+      <button onclick="toggleTable('{{ stock.symbol }}')">
+        Show/Hide Table
+      </button>
+      <div id="{{ stock.symbol }}-table" style="display: block">
+        <h2>Average and Extremes:</h2>
+        <table border="1">
+          <tr>
+            <th>Period</th>
+            <th>Avg High % Change</th>
+            <th>Avg Low % Change</th>
+            <th>Max High % Change</th>
+            <th>Min High % Change</th>
+            <th>Max Low % Change</th>
+            <th>Min Low % Change</th>
+          </tr>
+          {% for interval in period %}
+          <tr>
+            <td>{{ interval }}</td>
+            <td>{{ stock.data[interval]['Avg High % Change']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Avg Low % Change']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Max High % Change']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Min High % Change']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Max Low % Change']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Min Low % Change']|round(4) }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% for interval in period%}
+        <h2>Stock Data for {{ interval }}:</h2>
         <table border="1">
           <tr>
             <th>Date</th>
@@ -72,28 +61,38 @@
             <th>High</th>
             <th>Low</th>
             <th>Close</th>
-            <th>High % Change</th>
-            <th>Low % Change</th>
+            <th>High to Open %</th>
+            <th>Low to Open %</th>
             <th>Low to Close %</th>
             <th>High to Close %</th>
           </tr>
-          {% for i in range(data['Date']|length) %}
+          {% for i in range(stock.data[interval]['Date']|length)%}
           <tr>
-            <td>{{ data['Date'][i] }}</td>
-            <td>{{ data['Open'][i] }}</td>
-            <td>{{ data['High'][i] }}</td>
-            <td>{{ data['Low'][i] }}</td>
-            <td>{{ data['Close'][i] }}</td>
-            <td>{{ data['High % Change'][i] }}</td>
-            <td>{{ data['Low % Change'][i] }}</td>
-            <td>{{ data['Low to Close %'][i] }}</td>
-            <td>{{ data['High to Close %'][i] }}</td>
+            <td>{{ stock.data[interval]['Date'][i]}}</td>
+            <td>{{ stock.data[interval]['Open'][i]}}</td>
+            <td>{{ stock.data[interval]['High'][i]}}</td>
+            <td>{{ stock.data[interval]['Low'][i]}}</td>
+            <td>{{ stock.data[interval]['Close'][i]}}</td>
+            <td>{{ stock.data[interval]['High to Open %'][i]|round(4)}}</td>
+            <td>{{ stock.data[interval]['Low to Open %'][i]|round(4)}}</td>
+            <td>{{ stock.data[interval]['Low to Close %'][i]|round(4)}}</td>
+            <td>{{ stock.data[interval]['High to Close %'][i]|round(4)}}</td>
           </tr>
           {% endfor %}
         </table>
-        {% endfor %} {% endif %}
+        {% endfor %}
       </div>
-      {% endif %} {% endfor %}
+      {% endfor %} {% endif %}
     </ul>
+    <script>
+      function toggleTable(symbol) {
+        var table = document.getElementById(symbol + "-table");
+        if (table.style.display === "none") {
+          table.style.display = "block";
+        } else {
+          table.style.display = "none";
+        }
+      }
+    </script>
   </body>
 </html>

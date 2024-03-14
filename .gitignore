@@ -1,0 +1,33 @@
+# .gitignore
+
+# Ignore Python build artifacts
+__pycache__
+/__pycache__/*
+*.py[cod]
+*.pyd
+*.pyo
+*.so
+
+# Ignore Python virtual environments
+venv/
+*.venv
+ENV/
+
+# Ignore Jupyter Notebook files
+.ipynb_checkpoints/
+
+# Ignore database files
+*.db
+*.sqlite
+
+# Ignore log files
+*.log
+
+# Ignore all .env files
+*.env
+
+# Ignore migrations
+/migrations/
+
+# Ignore instance folder
+/instance/

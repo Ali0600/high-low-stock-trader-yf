@@ -10,6 +10,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stocks.db'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# Define the time periods and their corresponding number of days
+time_periods = {
+    '5d': 5,
+    '10d': 10,
+    '30d': 30,
+    '60d': 60,
+    '90d': 90,
+}
+
 class TrackedStock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(10), nullable=False)
@@ -30,16 +39,6 @@ def track_stock(symbol):
     # Get the last date in the data
     last_date = stock_data_1y.index[-1]
 
-    # Define the time periods and their corresponding number of days
-    time_periods = {
-        '5d': 5,
-        '10d': 10,
-        '30d': 30,
-        '60d': 60,
-        '90d': 90,
-        '1y': 365
-    }
-
      # Initialize dictionary to store stock data
     stock_data = {}
     for period, days in time_periods.items():
@@ -58,8 +57,9 @@ def track_stock(symbol):
 
         # Initialize lists to store data for each period
         stock_data[period] = {
-            'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High % Change': [], 'Low % Change': [],
-            'Low to Close %': [], 'High to Close %': []
+            'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High to Open %': [], 'Low to Open %': [],
+            'Low to Close %': [], 'High to Close %': [], 'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [], 
+            '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': []
         }
 
         # Iterate over each business day's data for the specified period
@@ -73,26 +73,44 @@ def track_stock(symbol):
                 pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
                 pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
 
+                # Calculate the max and min within each time period
+                max_high = max(stock_data[period]['High']) if stock_data[period]['High'] else row['High']
+                max_low = max(stock_data[period]['Low']) if stock_data[period]['Low'] else row['Low']
+                min_low = min(stock_data[period]['Low']) if stock_data[period]['Low'] else row['Low']
+
+                # Get the current price
+                current_price = get_current_price(symbol)
+
+                # Calculate percentage change from current price to max and min
+                pct_change_to_max = ((max_high - current_price) / current_price) * 100
+                pct_change_to_min = ((min_low - current_price) / current_price) * 100
+
+
                 # Add data to the period dictionary
                 stock_data[period]['Date'].append(date.strftime('%Y-%m-%d'))
-                stock_data[period]['Open'].append(row['Open'])
-                stock_data[period]['High'].append(row['High'])
-                stock_data[period]['Low'].append(row['Low'])
-                stock_data[period]['Close'].append(row['Close'])
-                stock_data[period]['High % Change'].append(pct_change_high)
-                stock_data[period]['Low % Change'].append(pct_change_low)
+                stock_data[period]['Open'].append(float(row['Open']))
+                stock_data[period]['High'].append(float(row['High']))
+                stock_data[period]['Low'].append(float(row['Low']))
+                stock_data[period]['Close'].append(float(row['Close']))
+                stock_data[period]['High to Open %'].append(pct_change_high)
+                stock_data[period]['Low to Open %'].append(pct_change_low)
                 stock_data[period]['Low to Close %'].append(pct_change_low_to_close)
                 stock_data[period]['High to Close %'].append(pct_change_high_to_close)
+                stock_data[period]['Max High'].append(max_high)
+                stock_data[period]['Max Low'].append(max_low)
+                stock_data[period]['Min Low'].append(min_low)
+                stock_data[period]['% Change from Highest Price to Current'].append(pct_change_to_max)
+                stock_data[period]['% Change from Lowest Price to Current'].append(pct_change_to_min)
+
 
 
         # Calculate average high % change and low % change for each period
-        if stock_data[period]['High % Change']:
-            stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High % Change']) / len(stock_data[period]['High % Change'])
-            stock_data[period]['Avg Low % Change'] = sum(stock_data[period]['Low % Change']) / len(stock_data[period]['Low % Change'])
-            stock_data[period]['Max High % Change'] = max(stock_data[period]['High % Change'])
-            stock_data[period]['Min High % Change'] = min(stock_data[period]['High % Change'])
-            stock_data[period]['Max Low % Change'] = max(stock_data[period]['Low % Change'])
-            stock_data[period]['Min Low % Change'] = min(stock_data[period]['Low % Change'])
+            stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High to Open %']) / len(stock_data[period]['High to Open %'])
+            stock_data[period]['Avg Low % Change'] = sum(stock_data[period]['Low to Open %']) / len(stock_data[period]['Low to Open %'])
+            stock_data[period]['Max High % Change'] = max(stock_data[period]['High to Open %'])
+            stock_data[period]['Min High % Change'] = min(stock_data[period]['High to Open %'])
+            stock_data[period]['Max Low % Change'] = max(stock_data[period]['Low to Open %'])
+            stock_data[period]['Min Low % Change'] = min(stock_data[period]['Low to Open %'])
     
 
     return stock_data
@@ -130,7 +148,7 @@ def track_stocks():
         with app.app_context():
             all_stocks = TrackedStock.query.all()
         
-        return render_template('trackedstocks.html', tracked_stocks=all_stocks)
+        return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
     else:
         # Handle GET request
         with app.app_context():
@@ -139,7 +157,7 @@ def track_stocks():
             tracked_symbols = [stock.symbol for stock in all_stocks]
             print(tracked_symbols)
       
-        return render_template('trackedstocks.html', tracked_stocks=all_stocks)
+        return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
 
 if __name__ == '__main__':
     app.run(debug=True)
