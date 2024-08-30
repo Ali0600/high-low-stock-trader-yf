@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+import sqlalchemy
 import yfinance as yf
 import pandas as pd
 from pandas.tseries.offsets import BDay
@@ -13,11 +14,14 @@ migrate = Migrate(app, db)
 # Define the time periods and their corresponding number of days
 time_periods = {
     '5d': 5,
-    '10d': 10,
-    '30d': 30,
-    '60d': 60,
-    '90d': 90,
+    #'10d': 10,
+    #'30d': 30,
+    #'60d': 60,
+    #'90d': 90,
 }
+
+def create_tables():
+    db.create_all()
 
 class TrackedStock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,12 +36,12 @@ def get_current_price(symbol):
 def track_stock(symbol):
     # Get the stock data for 1 year
     stock_data_1y = yf.download(symbol, period="1y")
-
-    # Filter out weekends (non-business days)
-    stock_data_1y = stock_data_1y[stock_data_1y.index.dayofweek < 5]
-
+    stock_data_90d = yf.download(symbol, period="90d")
+    #print(stock_data_1y)
+    print(len(stock_data_90d))
     # Get the last date in the data
     last_date = stock_data_1y.index[-1]
+    print(last_date)
 
      # Initialize dictionary to store stock data
     stock_data = {}
@@ -58,9 +62,12 @@ def track_stock(symbol):
         # Initialize lists to store data for each period
         stock_data[period] = {
             'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High to Open %': [], 'Low to Open %': [],
-            'Low to Close %': [], 'High to Close %': [], 'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [], 
+            'Low to Close %': [], 'High to Close %': [],
+            'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [], 
             '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': []
         }
+
+
 
         # Iterate over each business day's data for the specified period
         for date in business_days:
@@ -111,6 +118,9 @@ def track_stock(symbol):
             stock_data[period]['Min High % Change'] = min(stock_data[period]['High to Open %'])
             stock_data[period]['Max Low % Change'] = max(stock_data[period]['Low to Open %'])
             stock_data[period]['Min Low % Change'] = min(stock_data[period]['Low to Open %'])
+
+        #print("Period " + period + ":")
+        #print(stock_data[period])
     
 
     return stock_data
@@ -131,6 +141,13 @@ def home():
 
 @app.route('/tracked-stocks', methods=['GET', 'POST'])
 def track_stocks():
+
+    try:
+        with app.app_context():
+            db.create_all()  # Create the table if it doesn't exist
+    except sqlalchemy.exc.OperationalError as e:
+        return "Error in creating database tables: " + str(e), 500
+
     if request.method == 'POST':
         symbol = request.form['symbol']
         stock_price = request.form['price']
