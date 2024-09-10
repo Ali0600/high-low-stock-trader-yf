@@ -15,9 +15,9 @@ migrate = Migrate(app, db)
 time_periods = {
     '5d': 5,
     #'10d': 10,
-    #'30d': 30,
-    #'60d': 60,
-    #'90d': 90,
+    '30d': 30,
+    '60d': 60,
+    '90d': 90,
 }
 
 class TrackedStock(db.Model):
@@ -66,8 +66,7 @@ def track_stock(symbol):
             'Open to High %': [], 
             'Open to Low %': [],
             'Low to Close %': [], 'High to Close %': [],
-            'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [], 
-            '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': []
+            'Current Price': [], 
         }
 
 
@@ -109,16 +108,20 @@ def track_stock(symbol):
             stock_data[period]['Min Open to Low %'] = min(stock_data[period]['Open to Low %'])
             #stock_data[period]['High to Low % Change'] = ((stock_data[period]['High'] - stock_data[period]['Low']) / stock_data[period]['Low']) * 100
 
+        max_high_index = stock_data[period]['High'].index(max(stock_data[period]['High'])) #This is used so it starts the calculation from AFTER the highest value
         max_high = max(stock_data[period]['High'])
-        max_low = min(stock_data[period]['Low'])
-        print("High: " + str(max_high))
-        print("Low: " + str(max_low))
+        #max_low = min(stock_data[period]['Low'])
+        max_low = min(stock_data[period]['Low'][max_high_index:])
+
+        print("High of " +  period + ": "  + str(max_high))
+        print("Low of " + period + ": " + str(max_low))
         stock_data[period]['High to Low % Change'] = ((max_low - max_high)/max_high) * 100
         stock_data[period]['High to Current % Change'] = ((current_price - max_high) / max_high) * 100
 
-        #print("Period " + period + ":")
-        #print(stock_data[period])
-    
+        print(stock_data[period]['High'].index(max_high)) 
+        print(stock_data[period]['High'][max_high_index:])
+        print(min(stock_data[period]['Low'][max_high_index:]))
+
 
     return stock_data
 
