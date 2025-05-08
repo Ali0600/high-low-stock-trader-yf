@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 import yfinance as yf
 import pandas as pd
 from pandas.tseries.offsets import BDay
+from curl_cffi import requests
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stocks.db'
@@ -26,18 +28,46 @@ class TrackedStock(db.Model):
     data = db.Column(db.JSON, nullable=True)
 
 def get_current_price(symbol):
-    stock = yf.Ticker(symbol)
-    return stock.info['currentPrice']
+    try:
+        session = requests.Session(impersonate="chrome")
+        stock = yf.Ticker(symbol, session=session)
+        return stock.info.get('currentPrice', stock.info.get('regularMarketPrice', 0.0))
+    except Exception as e:
+        print(f"Error getting price for {symbol}: {e}")
+        return 0.0
 
+
+# Here I could add a variable to track the timeframe.
 def track_stock(symbol):
-    # Get the stock data for 1 year
-    stock_data_1y = yf.download(symbol, period="1y")
-
+    # Get the stock data for 3 months with a timeout
+    try:
+        session = requests.Session(impersonate="chrome", timeout=20)  # Add timeout
+        stock_data_3m = yf.download(symbol, period="3mo", session=session, timeout=20)
+        print(f"Downloaded data for {symbol}")
+    except Exception as e:
+        print(f"Error downloading data for {symbol}: {e}")
+        return {}  # Return empty dict on error
+        
+    print(stock_data_3m)
+    # Check if we got any data
+    if len(stock_data_3m) == 0:
+        print(f"No data found for symbol: {symbol}")
+        # Return empty data structure with proper keys
+        empty_data = {}
+        for period in time_periods.keys():
+            empty_data[period] = {
+                'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 
+                'High to Open %': [], 'Low to Open %': [], 'Low to Close %': [], 'High to Close %': [],
+                'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [],
+                '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': [],
+                'Avg High % Change': 0, 'Avg Low % Change': 0, 'Max High % Change': 0,
+                'Min High % Change': 0, 'Max Low % Change': 0, 'Min Low % Change': 0
+            }
+        return empty_data
     # Filter out weekends (non-business days)
-    stock_data_1y = stock_data_1y[stock_data_1y.index.dayofweek < 5]
-
+    stock_data_3m = stock_data_3m[stock_data_3m.index.dayofweek < 5]
     # Get the last date in the data
-    last_date = stock_data_1y.index[-1]
+    last_date = stock_data_3m.index[-1]
 
      # Initialize dictionary to store stock data
     stock_data = {}
@@ -61,37 +91,54 @@ def track_stock(symbol):
             'Low to Close %': [], 'High to Close %': [], 'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [], 
             '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': []
         }
-
         # Iterate over each business day's data for the specified period
         for date in business_days:
-            if date in stock_data_1y.index:
-                row = stock_data_1y.loc[date]
+            if date in stock_data_3m.index:
+                row = stock_data_3m.loc[date]
 
-                # Calculate percentage changes for each day
-                pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-                pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-                pct_change_low_to_close = ((row['Close'] - row['Low']) / row['Low']) * 100
-                pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
+                # Convert to float to ensure we're using scalar values, not Series
+                if isinstance(row, pd.Series):
+                    # Handle Series objects
+                    high = float(row['High'].iloc[0]) if isinstance(row['High'], pd.Series) else float(row['High'])
+                    low = float(row['Low'].iloc[0]) if isinstance(row['Low'], pd.Series) else float(row['Low'])
+                    open_price = float(row['Open'].iloc[0]) if isinstance(row['Open'], pd.Series) else float(row['Open'])
+                    close = float(row['Close'].iloc[0]) if isinstance(row['Close'], pd.Series) else float(row['Close'])
+                else:
+                    # Handle DataFrame objects
+                    high = float(row.iloc[0]['High'])
+                    low = float(row.iloc[0]['Low'])
+                    open_price = float(row.iloc[0]['Open'])
+                    close = float(row.iloc[0]['Close'])
+                
+                # Calculate percentage changes
+                pct_change_high = ((high - open_price) / open_price) * 100 if open_price != 0 else 0
+                pct_change_low = ((low - open_price) / open_price) * 100 if open_price != 0 else 0
+                pct_change_low_to_close = ((close - low) / low) * 100 if low != 0 else 0
+                pct_change_high_to_close = ((close - high) / high) * 100 if high != 0 else 0
 
                 # Calculate the max and min within each time period
-                max_high = max(stock_data[period]['High']) if stock_data[period]['High'] else row['High']
-                max_low = max(stock_data[period]['Low']) if stock_data[period]['Low'] else row['Low']
-                min_low = min(stock_data[period]['Low']) if stock_data[period]['Low'] else row['Low']
+                max_high = max(stock_data[period]['High']) if stock_data[period]['High'] else high
+                max_low = max(stock_data[period]['Low']) if stock_data[period]['Low'] else low
+                min_low = min(stock_data[period]['Low']) if stock_data[period]['Low'] else low
 
                 # Get the current price
                 current_price = get_current_price(symbol)
-
                 # Calculate percentage change from current price to max and min
-                pct_change_to_max = ((max_high - current_price) / current_price) * 100
-                pct_change_to_min = ((min_low - current_price) / current_price) * 100
+                # Use a default value if current_price is 0 to avoid division by zero
+                if current_price > 0:
+                    pct_change_to_max = ((max_high - current_price) / current_price) * 100
+                    pct_change_to_min = ((min_low - current_price) / current_price) * 100
+                else:
+                    pct_change_to_max = 0
+                    pct_change_to_min = 0
 
 
                 # Add data to the period dictionary
                 stock_data[period]['Date'].append(date.strftime('%Y-%m-%d'))
-                stock_data[period]['Open'].append(float(row['Open']))
-                stock_data[period]['High'].append(float(row['High']))
-                stock_data[period]['Low'].append(float(row['Low']))
-                stock_data[period]['Close'].append(float(row['Close']))
+                stock_data[period]['Open'].append(open_price)  
+                stock_data[period]['High'].append(high)  
+                stock_data[period]['Low'].append(low)  
+                stock_data[period]['Close'].append(close)  
                 stock_data[period]['High to Open %'].append(pct_change_high)
                 stock_data[period]['Low to Open %'].append(pct_change_low)
                 stock_data[period]['Low to Close %'].append(pct_change_low_to_close)
@@ -103,14 +150,34 @@ def track_stock(symbol):
                 stock_data[period]['% Change from Lowest Price to Current'].append(pct_change_to_min)
 
 
-
         # Calculate average high % change and low % change for each period
-            stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High to Open %']) / len(stock_data[period]['High to Open %'])
-            stock_data[period]['Avg Low % Change'] = sum(stock_data[period]['Low to Open %']) / len(stock_data[period]['Low to Open %'])
-            stock_data[period]['Max High % Change'] = max(stock_data[period]['High to Open %'])
-            stock_data[period]['Min High % Change'] = min(stock_data[period]['High to Open %'])
-            stock_data[period]['Max Low % Change'] = max(stock_data[period]['Low to Open %'])
-            stock_data[period]['Min Low % Change'] = min(stock_data[period]['Low to Open %'])
+        try:
+            if stock_data[period]['High to Open %']:
+                stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High to Open %']) / len(stock_data[period]['High to Open %'])
+                stock_data[period]['Max High % Change'] = max(stock_data[period]['High to Open %'])
+                stock_data[period]['Min High % Change'] = min(stock_data[period]['High to Open %'])
+            else:
+                stock_data[period]['Avg High % Change'] = 0
+                stock_data[period]['Max High % Change'] = 0
+                stock_data[period]['Min High % Change'] = 0
+                
+            if stock_data[period]['Low to Open %']:
+                stock_data[period]['Avg Low % Change'] = sum(stock_data[period]['Low to Open %']) / len(stock_data[period]['Low to Open %'])
+                stock_data[period]['Max Low % Change'] = max(stock_data[period]['Low to Open %'])
+                stock_data[period]['Min Low % Change'] = min(stock_data[period]['Low to Open %'])
+            else:
+                stock_data[period]['Avg Low % Change'] = 0
+                stock_data[period]['Max Low % Change'] = 0
+                stock_data[period]['Min Low % Change'] = 0
+        except Exception as e:
+            print(f"Error calculating statistics for {symbol} {period}: {e}")
+            # Set default values if calculation fails
+            stock_data[period]['Avg High % Change'] = 0
+            stock_data[period]['Avg Low % Change'] = 0
+            stock_data[period]['Max High % Change'] = 0
+            stock_data[period]['Min High % Change'] = 0
+            stock_data[period]['Max Low % Change'] = 0
+            stock_data[period]['Min Low % Change'] = 0
     
 
     return stock_data
@@ -133,22 +200,37 @@ def home():
 def track_stocks():
     if request.method == 'POST':
         symbol = request.form['symbol']
-        stock_price = request.form['price']
-
-        with app.app_context():
-            existing_stock = TrackedStock.query.filter_by(symbol=symbol).first()
-            if existing_stock:
-                existing_stock.price = stock_price
-            else:
-                new_stock = TrackedStock(symbol=symbol, price=stock_price, data=track_stock(symbol))
-                db.session.add(new_stock)
-
-            db.session.commit()
+        try:
+            stock_price = float(request.form['price'])
+        except ValueError:
+            stock_price = 0.0  # Default to 0 if invalid price
         
-        with app.app_context():
-            all_stocks = TrackedStock.query.all()
-        
-        return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
+        try:
+            with app.app_context():
+                existing_stock = TrackedStock.query.filter_by(symbol=symbol).first()
+                if existing_stock:
+                    existing_stock.price = stock_price
+                    # Update the data as well
+                    existing_stock.data = track_stock(symbol)
+                else:
+                    # Track the stock and get data
+                    stock_data = track_stock(symbol)
+                    if stock_data:
+                        new_stock = TrackedStock(symbol=symbol, price=stock_price, data=stock_data)
+                        db.session.add(new_stock)
+
+                db.session.commit()
+            
+            with app.app_context():
+                all_stocks = TrackedStock.query.all()
+            
+            return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
+        except Exception as e:
+            print(f"Error tracking stock {symbol}: {e}")
+            # Continue to show existing stocks even if adding new one fails
+            with app.app_context():
+                all_stocks = TrackedStock.query.all()
+            return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys(), error=f"Error tracking {symbol}: {e}")
     else:
         # Handle GET request
         with app.app_context():
@@ -156,8 +238,40 @@ def track_stocks():
             print(all_stocks)
             tracked_symbols = [stock.symbol for stock in all_stocks]
             print(tracked_symbols)
+            
+            # Debug the actual structure of data being retrieved from DB
+            for stock in all_stocks:
+                print(f"Stock: {stock.symbol}")
+                if stock.data:
+                    print(f"Data keys: {stock.data.keys()}")
+                    for period in time_periods.keys():
+                        if period in stock.data:
+                            print(f"Period {period} exists in data")
+                            if 'Avg High % Change' in stock.data[period]:
+                                print(f"  'Avg High % Change' exists for {period}")
+                        else:
+                            print(f"Period {period} MISSING from data!")
+                else:
+                    print(f"No data for {stock.symbol}")
       
         return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
 
+def create_tables(force_recreate=True):
+    with app.app_context():
+        if force_recreate:
+            db.drop_all()
+            print("Database tables dropped!")
+        
+        # Check if tables exist
+        inspector = db.inspect(db.engine)
+        existing_tables = inspector.get_table_names()
+        
+        if not existing_tables or force_recreate:
+            db.create_all()
+            print("Database tables created!")
+        else:
+            print("Database tables already exist.")
+
 if __name__ == '__main__':
+    create_tables()  # Create tables before running the app
     app.run(debug=True)

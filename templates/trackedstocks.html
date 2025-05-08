@@ -5,6 +5,12 @@
   </head>
   <body>
     <h1>Tracked Stocks</h1>
+    
+    {% if error %}
+    <div style="color: red; background-color: #ffeeee; padding: 10px; border: 1px solid red; margin: 10px 0;">
+      Error: {{ error }}
+    </div>
+    {% endif %}
 
     <!-- Form to track a new stock -->
     <form method="post">
@@ -43,12 +49,21 @@
           {% for interval in period %}
           <tr>
             <td>{{ interval }}</td>
-            <td>{{ stock.data[interval]['Avg High % Change']|round(4) }}</td>
-            <td>{{ stock.data[interval]['Avg Low % Change']|round(4) }}</td>
-            <td>{{ stock.data[interval]['Max High % Change']|round(4) }}</td>
-            <td>{{ stock.data[interval]['Min High % Change']|round(4) }}</td>
-            <td>{{ stock.data[interval]['Max Low % Change']|round(4) }}</td>
-            <td>{{ stock.data[interval]['Min Low % Change']|round(4) }}</td>
+            {% if stock.data and interval in stock.data and 'Avg High % Change' in stock.data[interval] %}
+              <td>{{ stock.data[interval]['Avg High % Change']|round(4) }}</td>
+              <td>{{ stock.data[interval]['Avg Low % Change']|round(4) }}</td>
+              <td>{{ stock.data[interval]['Max High % Change']|round(4) }}</td>
+              <td>{{ stock.data[interval]['Min High % Change']|round(4) }}</td>
+              <td>{{ stock.data[interval]['Max Low % Change']|round(4) }}</td>
+              <td>{{ stock.data[interval]['Min Low % Change']|round(4) }}</td>
+            {% else %}
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+            {% endif %}
           </tr>
           {% endfor %}
         </table>
@@ -66,19 +81,25 @@
             <th>Low to Close %</th>
             <th>High to Close %</th>
           </tr>
-          {% for i in range(stock.data[interval]['Date']|length)%}
-          <tr>
-            <td>{{ stock.data[interval]['Date'][i]}}</td>
-            <td>{{ stock.data[interval]['Open'][i]}}</td>
-            <td>{{ stock.data[interval]['High'][i]}}</td>
-            <td>{{ stock.data[interval]['Low'][i]}}</td>
-            <td>{{ stock.data[interval]['Close'][i]}}</td>
-            <td>{{ stock.data[interval]['High to Open %'][i]|round(4)}}</td>
-            <td>{{ stock.data[interval]['Low to Open %'][i]|round(4)}}</td>
-            <td>{{ stock.data[interval]['Low to Close %'][i]|round(4)}}</td>
-            <td>{{ stock.data[interval]['High to Close %'][i]|round(4)}}</td>
-          </tr>
-          {% endfor %}
+          {% if stock.data and interval in stock.data and 'Date' in stock.data[interval] %}
+            {% for i in range(stock.data[interval]['Date']|length)%}
+            <tr>
+              <td>{{ stock.data[interval]['Date'][i]}}</td>
+              <td>{{ stock.data[interval]['Open'][i]}}</td>
+              <td>{{ stock.data[interval]['High'][i]}}</td>
+              <td>{{ stock.data[interval]['Low'][i]}}</td>
+              <td>{{ stock.data[interval]['Close'][i]}}</td>
+              <td>{{ stock.data[interval]['High to Open %'][i]|round(4)}}</td>
+              <td>{{ stock.data[interval]['Low to Open %'][i]|round(4)}}</td>
+              <td>{{ stock.data[interval]['Low to Close %'][i]|round(4)}}</td>
+              <td>{{ stock.data[interval]['High to Close %'][i]|round(4)}}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="9">No data available for this period</td>
+            </tr>
+          {% endif %}
         </table>
         {% endfor %}
       </div>
