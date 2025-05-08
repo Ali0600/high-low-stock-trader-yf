@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+import sqlalchemy
 import yfinance as yf
 import pandas as pd
 from pandas.tseries.offsets import BDay
@@ -15,7 +16,7 @@ migrate = Migrate(app, db)
 # Define the time periods and their corresponding number of days
 time_periods = {
     '5d': 5,
-    '10d': 10,
+    #'10d': 10,
     '30d': 30,
     '60d': 60,
     '90d': 90,
@@ -39,6 +40,7 @@ def get_current_price(symbol):
 
 # Here I could add a variable to track the timeframe.
 def track_stock(symbol):
+<<<<<<< HEAD
     # Get the stock data for 3 months with a timeout
     try:
         session = requests.Session(impersonate="chrome", timeout=20)  # Add timeout
@@ -68,6 +70,16 @@ def track_stock(symbol):
     stock_data_3m = stock_data_3m[stock_data_3m.index.dayofweek < 5]
     # Get the last date in the data
     last_date = stock_data_3m.index[-1]
+=======
+    # Get the stock data for 1 year
+    stock_data_1y = yf.download(symbol, period="1y")
+    stock_data_90d = yf.download(symbol, period="3mo")
+    #print(stock_data_1y)
+    print(len(stock_data_90d))
+    # Get the last date in the data
+    last_date = stock_data_1y.index[-1]
+    print(last_date)
+>>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
 
      # Initialize dictionary to store stock data
     stock_data = {}
@@ -87,15 +99,28 @@ def track_stock(symbol):
 
         # Initialize lists to store data for each period
         stock_data[period] = {
-            'Date': [], 'Open': [], 'High': [], 'Low': [], 'Close': [], 'High to Open %': [], 'Low to Open %': [],
-            'Low to Close %': [], 'High to Close %': [], 'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [], 
-            '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': []
+            'Date': [], 
+            'Open': [], 
+            'High': [], 
+            'Low': [], 
+            'Close': [], 
+            'Open to High %': [], 
+            'Open to Low %': [],
+            'Low to Close %': [], 'High to Close %': [],
+            'Current Price': [], 
         }
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
         # Iterate over each business day's data for the specified period
         for date in business_days:
             if date in stock_data_3m.index:
                 row = stock_data_3m.loc[date]
 
+<<<<<<< HEAD
                 # Convert to float to ensure we're using scalar values, not Series
                 if isinstance(row, pd.Series):
                     # Handle Series objects
@@ -131,26 +156,41 @@ def track_stock(symbol):
                 else:
                     pct_change_to_max = 0
                     pct_change_to_min = 0
+=======
+                # Calculate percentage changes for each day
+                pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
+                pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
+                pct_change_low_to_close = ((row['Low'] - row['Close']) / row['Close']) * 100
+                pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
+
+                # Get the current price
+                current_price = get_current_price(symbol)
+>>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
 
 
                 # Add data to the period dictionary
                 stock_data[period]['Date'].append(date.strftime('%Y-%m-%d'))
+<<<<<<< HEAD
                 stock_data[period]['Open'].append(open_price)  
                 stock_data[period]['High'].append(high)  
                 stock_data[period]['Low'].append(low)  
                 stock_data[period]['Close'].append(close)  
                 stock_data[period]['High to Open %'].append(pct_change_high)
                 stock_data[period]['Low to Open %'].append(pct_change_low)
+=======
+                stock_data[period]['Open'].append(float(row['Open']))
+                stock_data[period]['High'].append(float(row['High']))
+                stock_data[period]['Low'].append(float(row['Low']))
+                stock_data[period]['Close'].append(float(row['Close']))
+                stock_data[period]['Open to High %'].append(pct_change_high)
+                stock_data[period]['Open to Low %'].append(pct_change_low)
+>>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
                 stock_data[period]['Low to Close %'].append(pct_change_low_to_close)
                 stock_data[period]['High to Close %'].append(pct_change_high_to_close)
-                stock_data[period]['Max High'].append(max_high)
-                stock_data[period]['Max Low'].append(max_low)
-                stock_data[period]['Min Low'].append(min_low)
-                stock_data[period]['% Change from Highest Price to Current'].append(pct_change_to_max)
-                stock_data[period]['% Change from Lowest Price to Current'].append(pct_change_to_min)
 
 
         # Calculate average high % change and low % change for each period
+<<<<<<< HEAD
         try:
             if stock_data[period]['High to Open %']:
                 stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High to Open %']) / len(stock_data[period]['High to Open %'])
@@ -179,6 +219,30 @@ def track_stock(symbol):
             stock_data[period]['Max Low % Change'] = 0
             stock_data[period]['Min Low % Change'] = 0
     
+=======
+            stock_data[period]['Avg Open to High %'] = sum(stock_data[period]['Open to High %']) / len(stock_data[period]['Open to High %'])
+            stock_data[period]['Avg Open to Low %'] = sum(stock_data[period]['Open to Low %']) / len(stock_data[period]['Open to Low %'])
+            stock_data[period]['Max Open to High %'] = max(stock_data[period]['Open to High %'])
+            stock_data[period]['Min Open to High %'] = min(stock_data[period]['Open to High %'])
+            stock_data[period]['Max Open to Low %'] = max(stock_data[period]['Open to Low %'])
+            stock_data[period]['Min Open to Low %'] = min(stock_data[period]['Open to Low %'])
+            #stock_data[period]['High to Low % Change'] = ((stock_data[period]['High'] - stock_data[period]['Low']) / stock_data[period]['Low']) * 100
+
+        max_high_index = stock_data[period]['High'].index(max(stock_data[period]['High'])) #This is used so it starts the calculation from AFTER the highest value
+        max_high = max(stock_data[period]['High'])
+        #max_low = min(stock_data[period]['Low'])
+        max_low = min(stock_data[period]['Low'][max_high_index:])
+
+        print("High of " +  period + ": "  + str(max_high))
+        print("Low of " + period + ": " + str(max_low))
+        stock_data[period]['High to Low % Change'] = ((max_low - max_high)/max_high) * 100
+        stock_data[period]['High to Current % Change'] = ((current_price - max_high) / max_high) * 100
+
+        print(stock_data[period]['High'].index(max_high)) 
+        print(stock_data[period]['High'][max_high_index:])
+        print(min(stock_data[period]['Low'][max_high_index:]))
+
+>>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
 
     return stock_data
 
@@ -198,6 +262,13 @@ def home():
 
 @app.route('/tracked-stocks', methods=['GET', 'POST'])
 def track_stocks():
+
+    try:
+        with app.app_context():
+            db.create_all()  # Create the table if it doesn't exist
+    except sqlalchemy.exc.OperationalError as e:
+        return "Error in creating database tables: " + str(e), 500
+
     if request.method == 'POST':
         symbol = request.form['symbol']
         try:
