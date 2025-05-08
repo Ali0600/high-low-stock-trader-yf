@@ -98,18 +98,11 @@ def track_stock(symbol):
             'Low to Close %': [], 'High to Close %': [],
             'Current Price': [], 
         }
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
         # Iterate over each business day's data for the specified period
         for date in business_days:
             if date in stock_data_3m.index:
                 row = stock_data_3m.loc[date]
 
-<<<<<<< HEAD
                 # Convert to float to ensure we're using scalar values, not Series
                 if isinstance(row, pd.Series):
                     # Handle Series objects
@@ -145,41 +138,21 @@ def track_stock(symbol):
                 else:
                     pct_change_to_max = 0
                     pct_change_to_min = 0
-=======
-                # Calculate percentage changes for each day
-                pct_change_high = ((row['High'] - row['Open']) / row['Open']) * 100
-                pct_change_low = ((row['Low'] - row['Open']) / row['Open']) * 100
-                pct_change_low_to_close = ((row['Low'] - row['Close']) / row['Close']) * 100
-                pct_change_high_to_close = ((row['Close'] - row['High']) / row['High']) * 100
-
-                # Get the current price
-                current_price = get_current_price(symbol)
->>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
 
 
                 # Add data to the period dictionary
                 stock_data[period]['Date'].append(date.strftime('%Y-%m-%d'))
-<<<<<<< HEAD
                 stock_data[period]['Open'].append(open_price)  
                 stock_data[period]['High'].append(high)  
                 stock_data[period]['Low'].append(low)  
                 stock_data[period]['Close'].append(close)  
                 stock_data[period]['High to Open %'].append(pct_change_high)
                 stock_data[period]['Low to Open %'].append(pct_change_low)
-=======
-                stock_data[period]['Open'].append(float(row['Open']))
-                stock_data[period]['High'].append(float(row['High']))
-                stock_data[period]['Low'].append(float(row['Low']))
-                stock_data[period]['Close'].append(float(row['Close']))
-                stock_data[period]['Open to High %'].append(pct_change_high)
-                stock_data[period]['Open to Low %'].append(pct_change_low)
->>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
                 stock_data[period]['Low to Close %'].append(pct_change_low_to_close)
                 stock_data[period]['High to Close %'].append(pct_change_high_to_close)
 
 
         # Calculate average high % change and low % change for each period
-<<<<<<< HEAD
         try:
             if stock_data[period]['High to Open %']:
                 stock_data[period]['Avg High % Change'] = sum(stock_data[period]['High to Open %']) / len(stock_data[period]['High to Open %'])
@@ -208,30 +181,6 @@ def track_stock(symbol):
             stock_data[period]['Max Low % Change'] = 0
             stock_data[period]['Min Low % Change'] = 0
     
-=======
-            stock_data[period]['Avg Open to High %'] = sum(stock_data[period]['Open to High %']) / len(stock_data[period]['Open to High %'])
-            stock_data[period]['Avg Open to Low %'] = sum(stock_data[period]['Open to Low %']) / len(stock_data[period]['Open to Low %'])
-            stock_data[period]['Max Open to High %'] = max(stock_data[period]['Open to High %'])
-            stock_data[period]['Min Open to High %'] = min(stock_data[period]['Open to High %'])
-            stock_data[period]['Max Open to Low %'] = max(stock_data[period]['Open to Low %'])
-            stock_data[period]['Min Open to Low %'] = min(stock_data[period]['Open to Low %'])
-            #stock_data[period]['High to Low % Change'] = ((stock_data[period]['High'] - stock_data[period]['Low']) / stock_data[period]['Low']) * 100
-
-        max_high_index = stock_data[period]['High'].index(max(stock_data[period]['High'])) #This is used so it starts the calculation from AFTER the highest value
-        max_high = max(stock_data[period]['High'])
-        #max_low = min(stock_data[period]['Low'])
-        max_low = min(stock_data[period]['Low'][max_high_index:])
-
-        print("High of " +  period + ": "  + str(max_high))
-        print("Low of " + period + ": " + str(max_low))
-        stock_data[period]['High to Low % Change'] = ((max_low - max_high)/max_high) * 100
-        stock_data[period]['High to Current % Change'] = ((current_price - max_high) / max_high) * 100
-
-        print(stock_data[period]['High'].index(max_high)) 
-        print(stock_data[period]['High'][max_high_index:])
-        print(min(stock_data[period]['Low'][max_high_index:]))
-
->>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
 
     return stock_data
 
