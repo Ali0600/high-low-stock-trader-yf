@@ -40,7 +40,6 @@ def get_current_price(symbol):
 
 # Here I could add a variable to track the timeframe.
 def track_stock(symbol):
-<<<<<<< HEAD
     # Get the stock data for 3 months with a timeout
     try:
         session = requests.Session(impersonate="chrome", timeout=20)  # Add timeout
@@ -70,16 +69,6 @@ def track_stock(symbol):
     stock_data_3m = stock_data_3m[stock_data_3m.index.dayofweek < 5]
     # Get the last date in the data
     last_date = stock_data_3m.index[-1]
-=======
-    # Get the stock data for 1 year
-    stock_data_1y = yf.download(symbol, period="1y")
-    stock_data_90d = yf.download(symbol, period="3mo")
-    #print(stock_data_1y)
-    print(len(stock_data_90d))
-    # Get the last date in the data
-    last_date = stock_data_1y.index[-1]
-    print(last_date)
->>>>>>> f953ffeed147a6f1d2e93157813f19f88958f886
 
      # Initialize dictionary to store stock data
     stock_data = {}
