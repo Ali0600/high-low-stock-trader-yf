@@ -42,7 +42,7 @@ def track_stock(symbol):
     # Get the stock data for 3 months with a timeout
     try:
         session = requests.Session(impersonate="chrome", timeout=20)  # Add timeout
-        stock_data_3m = yf.download(symbol, period="3mo", session=session, timeout=20)
+        stock_data_3m = yf.download(symbol, period="3mo", session=session, timeout=20, auto_adjust=False)
         print(f"Downloaded data for {symbol}")
     except Exception as e:
         print(f"Error downloading data for {symbol}: {e}")
