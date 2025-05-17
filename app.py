@@ -272,60 +272,74 @@ def home():
 @app.route('/tracked-stocks', methods=['GET', 'POST'])
 def track_stocks():
     if request.method == 'POST':
-        symbol = request.form['symbol']
+        # Get the symbol(s) from the form and split by commas
+        symbols_input = request.form['symbol']
+        symbols = [s.strip().upper() for s in symbols_input.split(',') if s.strip()]
+        
+        # Get price from form
         try:
             stock_price = float(request.form['price'])
         except ValueError:
             stock_price = 0.0  # Default to 0 if invalid price
         
+        # Track success/failure for each symbol
+        results = []
+        
         try:
             with app.app_context():
-                existing_stock = TrackedStock.query.filter_by(symbol=symbol).first()
-                if existing_stock:
-                    existing_stock.price = stock_price
-                    # Update the data as well
-                    existing_stock.data = track_stock(symbol)
-                else:
-                    # Track the stock and get data
-                    stock_data = track_stock(symbol)
-                    if stock_data:
-                        new_stock = TrackedStock(symbol=symbol, price=stock_price, data=stock_data)
-                        db.session.add(new_stock)
-
+                # Process each symbol
+                for symbol in symbols:
+                    if not symbol:  # Skip empty symbols
+                        continue
+                        
+                    try:
+                        print(f"Processing symbol: {symbol}")
+                        existing_stock = TrackedStock.query.filter_by(symbol=symbol).first()
+                        
+                        if existing_stock:
+                            # Update existing stock
+                            existing_stock.price = stock_price
+                            # Update the data as well
+                            existing_stock.data = track_stock(symbol)
+                            results.append(f"Updated {symbol}")
+                        else:
+                            # Track new stock and get data
+                            stock_data = track_stock(symbol)
+                            if stock_data:
+                                new_stock = TrackedStock(symbol=symbol, price=stock_price, data=stock_data)
+                                db.session.add(new_stock)
+                                results.append(f"Added {symbol}")
+                    except Exception as e:
+                        error_msg = f"Error tracking {symbol}: {str(e)}"
+                        print(error_msg)
+                        results.append(error_msg)
+                
+                # Commit all changes at once after processing all symbols
                 db.session.commit()
             
+            # Get all stocks to display
             with app.app_context():
                 all_stocks = TrackedStock.query.all()
             
-            return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
+            # Generate summary message
+            summary = ", ".join(results)
+            return render_template('trackedstocks.html', tracked_stocks=all_stocks, 
+                                  period=time_periods.keys(), 
+                                  message=f"Processed stocks: {summary}")
         except Exception as e:
-            print(f"Error tracking stock {symbol}: {e}")
-            # Continue to show existing stocks even if adding new one fails
+            print(f"Error tracking stocks: {e}")
+            # Continue to show existing stocks even if adding new ones fails
             with app.app_context():
                 all_stocks = TrackedStock.query.all()
-            return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys(), error=f"Error tracking {symbol}: {e}")
+            return render_template('trackedstocks.html', tracked_stocks=all_stocks, 
+                                  period=time_periods.keys(), 
+                                  error=f"Error tracking stocks: {e}")
     else:
         # Handle GET request
         with app.app_context():
             all_stocks = TrackedStock.query.all()
-            print(all_stocks)
             tracked_symbols = [stock.symbol for stock in all_stocks]
-            print(tracked_symbols)
-            
-            # Debug the actual structure of data being retrieved from DB
-            for stock in all_stocks:
-                print(f"Stock: {stock.symbol}")
-                if stock.data:
-                    print(f"Data keys: {stock.data.keys()}")
-                    for period in time_periods.keys():
-                        if period in stock.data:
-                            print(f"Period {period} exists in data")
-                            if 'Avg High % Change' in stock.data[period]:
-                                print(f"  'Avg High % Change' exists for {period}")
-                        else:
-                            print(f"Period {period} MISSING from data!")
-                else:
-                    print(f"No data for {stock.symbol}")
+            print(f"Currently tracked symbols: {tracked_symbols}")
       
         return render_template('trackedstocks.html', tracked_stocks=all_stocks, period=time_periods.keys())
 

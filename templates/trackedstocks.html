@@ -11,14 +11,22 @@
       Error: {{ error }}
     </div>
     {% endif %}
+    
+    {% if message %}
+    <div style="color: green; background-color: #eeffee; padding: 10px; border: 1px solid green; margin: 10px 0;">
+      {{ message }}
+    </div>
+    {% endif %}
 
     <!-- Form to track a new stock -->
     <form method="post">
-      <label for="symbol">Stock Symbol:</label>
-      <input type="text" id="symbol" name="symbol" required />
+      <label for="symbol">Stock Symbol(s):</label>
+      <input type="text" id="symbol" name="symbol" required placeholder="Enter symbol(s) e.g. AAPL, NVDA, AMD" style="width: 300px;" />
+      <br />
+      <small style="color: #666; margin-left: 125px;">Enter multiple symbols separated by commas</small>
       <br />
       <label for="price">Stock Price:</label>
-      <input type="text" id="price" name="price" required />
+      <input type="text" id="price" name="price" required value="0" />
       <br />
       <input type="submit" value="Track" />
     </form>
