@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+import sqlalchemy
 import yfinance as yf
 import pandas as pd
 from pandas.tseries.offsets import BDay
@@ -16,7 +17,7 @@ migrate = Migrate(app, db)
 # Define the time periods and their corresponding number of days
 time_periods = {
     '5d': 5,
-    '10d': 10,
+    #'10d': 10,
     '30d': 30,
     '60d': 60,
     '90d': 90,
@@ -271,6 +272,13 @@ def home():
 
 @app.route('/tracked-stocks', methods=['GET', 'POST'])
 def track_stocks():
+
+    try:
+        with app.app_context():
+            db.create_all()  # Create the table if it doesn't exist
+    except sqlalchemy.exc.OperationalError as e:
+        return "Error in creating database tables: " + str(e), 500
+
     if request.method == 'POST':
         # Get the symbol(s) from the form and split by commas
         symbols_input = request.form['symbol']

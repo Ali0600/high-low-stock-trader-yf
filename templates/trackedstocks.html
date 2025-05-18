@@ -129,31 +129,28 @@
         <table border="1">
           <tr>
             <th>Period</th>
-            <th>Avg High % Change</th>
-            <th>Avg Low % Change</th>
+            <th>Avg Open to High %</th>
+            <th>Avg Open to Low %</th>
             <th>Max High % Change</th>
             <th>Min High % Change</th>
             <th>Max Low % Change</th>
             <th>Min Low % Change</th>
+            <th>High to Low % Change</th>
+            <th>High to Current % Change</th>
           </tr>
           {% for interval in period %}
           <tr>
             <td>{{ interval }}</td>
-            {% if stock.data and interval in stock.data and 'Avg High % Change' in stock.data[interval] %}
-              <td>{{ stock.data[interval]['Avg High % Change']|round(4) }}</td>
-              <td>{{ stock.data[interval]['Avg Low % Change']|round(4) }}</td>
-              <td>{{ stock.data[interval]['Max High % Change']|round(4) }}</td>
-              <td>{{ stock.data[interval]['Min High % Change']|round(4) }}</td>
-              <td>{{ stock.data[interval]['Max Low % Change']|round(4) }}</td>
-              <td>{{ stock.data[interval]['Min Low % Change']|round(4) }}</td>
-            {% else %}
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-              <td>0</td>
-            {% endif %}
+            <td>{{ stock.data[interval]['Avg Open to High %']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Avg Open to Low %']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Max Open to High %']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Min Open to High %']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Max Open to Low %']|round(4) }}</td>
+            <td>{{ stock.data[interval]['Min Open to Low %']|round(4) }}</td>
+            <td>{{ stock.data[interval]['High to Low % Change']|round(4) }}</td>
+            <td>
+              {{ stock.data[interval]['High to Current % Change']|round(4) }}
+            </td>
           </tr>
           {% endfor %}
         </table>
@@ -170,30 +167,24 @@
             <th>High</th>
             <th>Low</th>
             <th>Close</th>
-            <th>High to Open %</th>
-            <th>Low to Open %</th>
+            <th>Open to High %</th>
+            <th>Open to Low %</th>
             <th>Low to Close %</th>
             <th>High to Close %</th>
           </tr>
-          {% if stock.data and interval in stock.data and 'Date' in stock.data[interval] %}
-            {% for i in range(stock.data[interval]['Date']|length)%}
-            <tr>
-              <td>{{ stock.data[interval]['Date'][i]}}</td>
-              <td>{{ stock.data[interval]['Open'][i]}}</td>
-              <td>{{ stock.data[interval]['High'][i]}}</td>
-              <td>{{ stock.data[interval]['Low'][i]}}</td>
-              <td>{{ stock.data[interval]['Close'][i]}}</td>
-              <td>{{ stock.data[interval]['High to Open %'][i]|round(4)}}</td>
-              <td>{{ stock.data[interval]['Low to Open %'][i]|round(4)}}</td>
-              <td>{{ stock.data[interval]['Low to Close %'][i]|round(4)}}</td>
-              <td>{{ stock.data[interval]['High to Close %'][i]|round(4)}}</td>
-            </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="9">No data available for this period</td>
-            </tr>
-          {% endif %}
+          {% for i in range(stock.data[interval]['Date']|length)%}
+          <tr>
+            <td>{{ stock.data[interval]['Date'][i]}}</td>
+            <td>{{ stock.data[interval]['Open'][i]}}</td>
+            <td>{{ stock.data[interval]['High'][i]}}</td>
+            <td>{{ stock.data[interval]['Low'][i]}}</td>
+            <td>{{ stock.data[interval]['Close'][i]}}</td>
+            <td>{{ stock.data[interval]['Open to High %'][i]|round(4)}}</td>
+            <td>{{ stock.data[interval]['Open to Low %'][i]|round(4)}}</td>
+            <td>{{ stock.data[interval]['Low to Close %'][i]|round(4)}}</td>
+            <td>{{ stock.data[interval]['High to Close %'][i]|round(4)}}</td>
+          </tr>
+          {% endfor %}
         </table>
         {% endfor %}
       </div>
