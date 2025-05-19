@@ -2,33 +2,129 @@
 <html>
   <head>
     <title>Tracked Stocks</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1, h2, h3 {
+        color: #333;
+      }
+      table {
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        width: 100%;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      tr:hover {
+        background-color: #eef;
+      }
+      button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      form {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      input[type=text] {
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      input[type=submit] {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      input[type=submit]:hover {
+        background-color: #45a049;
+      }
+      .stock-container {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #fff;
+      }
+    </style>
   </head>
   <body>
     <h1>Tracked Stocks</h1>
+    
+    {% if error %}
+    <div style="color: red; background-color: #ffeeee; padding: 10px; border: 1px solid red; margin: 10px 0;">
+      Error: {{ error }}
+    </div>
+    {% endif %}
+    
+    {% if message %}
+    <div style="color: green; background-color: #eeffee; padding: 10px; border: 1px solid green; margin: 10px 0;">
+      {{ message }}
+    </div>
+    {% endif %}
 
     <!-- Form to track a new stock -->
     <form method="post">
-      <label for="symbol">Stock Symbol:</label>
-      <input type="text" id="symbol" name="symbol" required />
+      <label for="symbol">Stock Symbol(s):</label>
+      <input type="text" id="symbol" name="symbol" required placeholder="Enter symbol(s) e.g. AAPL, NVDA, AMD" style="width: 300px;" />
+      <br />
+      <small style="color: #666; margin-left: 125px;">Enter multiple symbols separated by commas</small>
       <br />
       <label for="price">Stock Price:</label>
-      <input type="text" id="price" name="price" required />
+      <input type="text" id="price" name="price" required value="0" />
       <br />
       <input type="submit" value="Track" />
     </form>
 
     <!-- Display tracked stocks -->
     <h2>Currently Tracked Stocks:</h2>
-    <ul>
-      {% if tracked_stocks %} {% for stock in tracked_stocks %}
-      <h3>
-        <strong>Symbol:</strong> {{ stock.symbol }},
-        <strong>Price:</strong> {{stock.price }}
-      </h3>
-      <button onclick="toggleTable('{{ stock.symbol }}')">
-        Show/Hide Table
-      </button>
-      <div id="{{ stock.symbol }}-table" style="display: block">
+    <div class="stocks-list">
+      {% if tracked_stocks %} 
+      {% for stock in tracked_stocks %}
+      <div class="stock-container">
+        <h3>
+          <strong>Symbol:</strong> {{ stock.symbol }},
+          <strong>Price:</strong> {{stock.price }}
+        </h3>
+        <button onclick="toggleSummaryTable('{{ stock.symbol }}')">
+          Show/Hide Summary
+        </button>
+        <button onclick="toggleDetailedTables('{{ stock.symbol }}')">
+          Show/Hide Detailed Data
+        </button>
+      
+      <!-- Summary table (Averages and Extremes) - visible by default -->
+      <div id="{{ stock.symbol }}-summary" style="display: block">
         <h2>Average and Extremes:</h2>
         <table border="1">
           <tr>
@@ -58,6 +154,10 @@
           </tr>
           {% endfor %}
         </table>
+      </div>
+      
+      <!-- Detailed data tables - hidden by default -->
+      <div id="{{ stock.symbol }}-details" style="display: none">
         {% for interval in period%}
         <h2>Stock Data for {{ interval }}:</h2>
         <table border="1">
@@ -88,15 +188,26 @@
         </table>
         {% endfor %}
       </div>
-      {% endfor %} {% endif %}
-    </ul>
+      </div><!-- Close stock-container -->
+      {% endfor %} 
+      {% endif %}
+    </div><!-- Close stocks-list -->
     <script>
-      function toggleTable(symbol) {
-        var table = document.getElementById(symbol + "-table");
-        if (table.style.display === "none") {
-          table.style.display = "block";
+      function toggleSummaryTable(symbol) {
+        var summaryTable = document.getElementById(symbol + "-summary");
+        if (summaryTable.style.display === "none") {
+          summaryTable.style.display = "block";
         } else {
-          table.style.display = "none";
+          summaryTable.style.display = "none";
+        }
+      }
+      
+      function toggleDetailedTables(symbol) {
+        var detailsTables = document.getElementById(symbol + "-details");
+        if (detailsTables.style.display === "none") {
+          detailsTables.style.display = "block";
+        } else {
+          detailsTables.style.display = "none";
         }
       }
     </script>
