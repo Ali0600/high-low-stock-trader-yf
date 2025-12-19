@@ -17,7 +17,7 @@ migrate = Migrate(app, db)
 # Define the time periods and their corresponding number of days
 time_periods = {
     '5d': 5,
-    #'10d': 10,
+    '10d': 10,
     '30d': 30,
     '60d': 60,
     '90d': 90,
@@ -39,9 +39,9 @@ def get_current_price(symbol):
         return 0.0
 
 
-# Here I could add a variable to track the timeframe.
+
 def track_stock(symbol):
-    # Get the stock data for 3 months with a timeout
+    # Get the stock data for 3 months
     try:
         session = requests.Session(impersonate="chrome", timeout=20)
         stock_data_3m = yf.download(symbol, period="3mo", session=session, timeout=20, auto_adjust=False)
@@ -62,27 +62,27 @@ def track_stock(symbol):
                 'Max High': [], 'Max Low': [], 'Min Low': [], 'Current Price': [],
                 '% Change from Highest Price to Current': [], '% Change from Lowest Price to Current': [],
                 'Avg High % Change': 0, 'Avg Low % Change': 0, 'Max High % Change': 0,
-                'Min High % Change': 0, 'Max Low % Change': 0, 'Min Low % Change': 0
+                'Min Low % Change': 0
             }
         return empty_data
     
     # Print an example of the data structure to debug
     print(f"Data sample (first row): {stock_data_3m.iloc[0]}")
-    
+    print("**********")
     # Filter out weekends (non-business days)
     stock_data_3m = stock_data_3m[stock_data_3m.index.dayofweek < 5]
     
     # Get the last date in the data
     last_date = stock_data_3m.index[-1]
     
-    # Get current price once instead of for each day
+    
     current_price = get_current_price(symbol)
     print(f"Current price for {symbol}: {current_price}")
     
     # Initialize dictionary to store stock data
     stock_data = {}
     
-    # Create a mapping for period to business days to avoid redundant code
+    # A mapping for period to business days
     business_days_map = {
         '5d': pd.date_range(end=last_date, periods=time_periods['5d'], freq=BDay()),
         '10d': pd.date_range(end=last_date, periods=time_periods['10d'], freq=BDay()),
@@ -92,12 +92,11 @@ def track_stock(symbol):
     }
     
     for period, days in time_periods.items():
+        #This holds the dates for the business days in this period
         business_days = business_days_map[period]
         
         # Pre-filter relevant data for this period to avoid repeated lookups
         period_dates = [date for date in business_days if date in stock_data_3m.index]
-        period_data = stock_data_3m.loc[period_dates]
-        
         # Initialize data structure for this period
         date_strings = [date.strftime('%Y-%m-%d') for date in period_dates]
         
@@ -113,18 +112,10 @@ def track_stock(symbol):
                 # Get the row for this date
                 row = stock_data_3m.loc[date]
                 
-                # Handle single value or Series appropriately
-                if isinstance(row, pd.Series):
-                    open_val = float(row['Open'])
-                    high_val = float(row['High'])
-                    low_val = float(row['Low'])
-                    close_val = float(row['Close'])
-                else:
-                    # For DataFrame result, take the first row
-                    open_val = float(row.iloc[0]['Open'])
-                    high_val = float(row.iloc[0]['High'])
-                    low_val = float(row.iloc[0]['Low'])
-                    close_val = float(row.iloc[0]['Close'])
+                open_val = float(row['Open'])
+                high_val = float(row['High'])
+                low_val = float(row['Low'])
+                close_val = float(row['Close'])
                 
                 # Append the scalar values to our lists
                 opens.append(open_val)
@@ -147,7 +138,7 @@ def track_stock(symbol):
             min_low = 0
         else:
             # Calculate percentage changes with scalar values
-            high_to_open_pct = []
+            high_to_open_pct = [] #
             low_to_open_pct = []
             low_to_close_pct = []
             high_to_close_pct = []
@@ -166,6 +157,7 @@ def track_stock(symbol):
                     l_close = ((close_val - low_val) / low_val) * 100 if low_val != 0 else 0
                     h_close = ((close_val - high_val) / high_val) * 100 if high_val != 0 else 0
                     
+                    # Then append the calculated percentages to the lists
                     high_to_open_pct.append(h_open)
                     low_to_open_pct.append(l_open)
                     low_to_close_pct.append(l_close)
@@ -186,27 +178,15 @@ def track_stock(symbol):
                 print(f"Error finding max/min values for {symbol} {period}: {e}")
                 max_high = 0
                 min_low = 0
+    
         
-        # Calculate percentage changes from current price
-        pct_change_to_max = ((max_high - current_price) / current_price) * 100 if current_price > 0 and isinstance(max_high, (int, float)) else 0
-        pct_change_to_min = ((min_low - current_price) / current_price) * 100 if current_price > 0 and isinstance(min_low, (int, float)) else 0
         
-        # Calculate statistics in one go
-        avg_high_pct = sum(high_to_open_pct) / len(high_to_open_pct) if high_to_open_pct else 0
-        max_high_pct = max(high_to_open_pct) if high_to_open_pct else 0
-        min_high_pct = min(high_to_open_pct) if high_to_open_pct else 0
-        
-        avg_low_pct = sum(low_to_open_pct) / len(low_to_open_pct) if low_to_open_pct else 0
-        max_low_pct = max(low_to_open_pct) if low_to_open_pct else 0
-        min_low_pct = min(low_to_open_pct) if low_to_open_pct else 0
-        
-        # This section was moved down, so we can remove it here
+    
         
         # Calculate statistics with error handling
         try:
             avg_high_pct = sum(high_to_open_pct) / len(high_to_open_pct) if high_to_open_pct else 0
             max_high_pct = max(high_to_open_pct) if high_to_open_pct else 0
-            min_high_pct = min(high_to_open_pct) if high_to_open_pct else 0
             
             avg_low_pct = sum(low_to_open_pct) / len(low_to_open_pct) if low_to_open_pct else 0
             max_low_pct = max(low_to_open_pct) if low_to_open_pct else 0
@@ -215,7 +195,6 @@ def track_stock(symbol):
             print(f"Error calculating statistics for {symbol} {period}: {e}")
             avg_high_pct = 0
             max_high_pct = 0
-            min_high_pct = 0
             avg_low_pct = 0
             max_low_pct = 0
             min_low_pct = 0
@@ -226,8 +205,6 @@ def track_stock(symbol):
         max_low_list = [max(lows) if lows else 0] * list_length if list_length > 0 else []
         min_low_list = [min_low] * list_length if list_length > 0 else []
         current_price_list = [current_price] * list_length if list_length > 0 else []
-        pct_change_to_max_list = [pct_change_to_max] * list_length if list_length > 0 else []
-        pct_change_to_min_list = [pct_change_to_min] * list_length if list_length > 0 else []
             
         # Store all data at once with proper types for JSON serialization
         stock_data[period] = {
@@ -244,13 +221,9 @@ def track_stock(symbol):
             'Max Low': max_low_list,
             'Min Low': min_low_list,
             'Current Price': current_price_list,
-            '% Change from Highest Price to Current': pct_change_to_max_list,
-            '% Change from Lowest Price to Current': pct_change_to_min_list,
             'Avg High % Change': avg_high_pct,
             'Max High % Change': max_high_pct,
-            'Min High % Change': min_high_pct,
             'Avg Low % Change': avg_low_pct,
-            'Max Low % Change': max_low_pct,
             'Min Low % Change': min_low_pct
         }
     
